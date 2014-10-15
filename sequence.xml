@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<sequence>
+	<cont media="video1.mp4">
+		<interface>omxplayer</interface>
+		<width>960</width>
+		<height>540</height>
+		<xpos>100</xpos>
+		<ypos>200</ypos>
+		<layer>3</layer>
+	</cont>
+	<cont media="video2.mp4">
+		<interface>omxplayer</interface>
+		<width>960</width>
+		<height>540</height>
+		<xpos>500</xpos>
+		<ypos>100</ypos>
+		<layer>2</layer>
+	</cont>
+	<cont media="gary.jpg">
+		<interface>feh</interface>
+		<width>960</width>
+		<height>540</height>
+		<xpos>500</xpos>
+		<ypos>100</ypos>
+	</cont>
+	<cont media="pin18">
+		<interface>gpio</interface>
+		<pin>18</pin>
+		<pinmode>output</pinmode>
+		<initialstate>low</initialstate>
+	</cont>
+	<event time="00:00:00" >
+		<action name="start">video1.mp4</action>
+		<action name="cue">video2.mp4</action>
+	</event>
+	<event time="00:10:20" >
+		<action name="end">video1.mp4</action>
+		<action name="start">video2.mp4</action>
+		<action name="high">pin18</action>
+	</event>
+	<event time="00:10:50" >
+		<action name="start" startpoint="00:00:15" >video1.mp4</action>
+	</event>
+	<event time="00:12:00" >
+		<action name="waitforcue" type="tcp" />
+	</event>
+	<event time="00:20:30" >
+		<action name="end">video2.mp4</action>
+		<action name="seqend" />
+	</event>
+</sequence>
