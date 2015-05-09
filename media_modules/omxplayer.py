@@ -51,9 +51,19 @@ class media():
 
 
 
+	# Timeline actions with pause and seek
 	def pause(self):
-		self.PlayerInter.Action(dbus.Int32("16"))
+		self.PlayerInter.Pause()
 
+	def paused():
+		pass
+	def unpaused():
+		pass
+	def quit(self):
+		self.object.Quit()
+
+	# Audio actions
+	
 	def volume(self,level):
 		self.PlayerProp.Volume(dbus.Double(level))
 
@@ -68,16 +78,19 @@ class media():
 			sleep(stepSleep)
 			print vol
 		if 'kill' in args:
-			self.object.Quit()
-			
+			self.quit()
+	
+	# Visual Video actions
 
 	def resize(self,x1,y1,x2,y2):
-		pass
+		pos = '%s %s %s %s' % (str(x1),str(y1),str(x2),str(y2))
+		self.PlayerInter.VideoPos(dbus.ObjectPath('/not/used'),dbus.String(pos))
+		print 'set pos to ' + pos
 
 	def alpha(self,alpha):
-		self.PlayerInter.SetAlpha(dbus.Int64(alpha))
-		print 'Alpha  set to %s' % alpha
-
+		self.PlayerInter.SetAlpha(dbus.ObjectPath('/not/used'),dbus.Int64(alpha))
+		#print 'Alpha  set to %s' % alpha
+	
 
 		
 		
