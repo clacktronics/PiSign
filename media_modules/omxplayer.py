@@ -1,5 +1,6 @@
 #!/usr/bin/env
 
+from time import sleep
 import subprocess,dbus,getpass,os
 from re import match
 
@@ -25,22 +26,23 @@ class media():
 
 		print self.cmd
 		devnull = open(os.devnull, 'wb')
-		player = subprocess.Popen(self.cmd, stdout = devnull)
-
+		self.player = subprocess.Popen(self.cmd, stdout = devnull)
 
 		done,retry = 0,0
 		while done == 0:
 			try:
-				dbusfile = '/tmp/omxplayerdbus.%s' % getpass.getuser()	
+				dbusfile = '/tmp/omxplayerdbus.%s' % getpass.getuser() # open up the dbus file, it ends in user name	
 				with open(dbusfile, 'r+') as f:
-					omxplayerdbus = f.read().strip()
+					omxplayerdbus = f.read().strip() # get the dbus and load it into dbus module
 				bus = dbus.bus.BusConnection(omxplayerdbus)
-				object = bus.get_object(self.dbusname,'/org/mpris/MediaPlayer2', introspect=False)
-				self.dbusIfaceProp = dbus.Interface(object,'org.freedesktop.DBus.Properties')
-        			self.dbusIfaceKey = dbus.Interface(object,'org.mpris.MediaPlayer2.Player')
-				self.dbusIfaceKey.Action(dbus.Int32("16"))
+				self.object = bus.get_object(self.dbusname,'/org/mpris/MediaPlayer2', introspect=False)
+				# PlayerProp is for finding out info about current stream and some volume control
+				self.PlayerProp = dbus.Interface(self.object,'org.freedesktop.DBus.Properties') 
+        			# PlaterInter is the interface to control the video ( e.g seek, pause etc etc )
+				self.PlayerInter = dbus.Interface(self.object,'org.mpris.MediaPlayer2.Player')
+				self.PlayerInter.Action(dbus.Int32("16"))
 				done = 1
-			except Exception,e:
+			except Exception,e: # try 50 times until it connects
 				retry+=1
 				if retry >= 50:
 					print 'fail'
@@ -50,4 +52,32 @@ class media():
 
 
 	def pause(self):
-		self.dbusIfaceKey.Action(dbus.Int32("16"))
+		self.PlayerInter.Action(dbus.Int32("16"))
+
+	def volume(self,level):
+		self.PlayerProp.Volume(dbus.Double(level))
+
+	def fade(self,direction,duration,*args):
+		stepSleep = duration / 100.
+		for i in range(101):
+			if direction == 'in':
+				vol = i / 100.
+			if direction == 'out':
+				vol = (100 - i) / 100.
+			self.volume(vol)
+			sleep(stepSleep)
+			print vol
+		if 'kill' in args:
+			self.object.Quit()
+			
+
+	def resize(self,x1,y1,x2,y2):
+		pass
+
+	def alpha(self,alpha):
+		self.PlayerInter.SetAlpha(dbus.Int64(alpha))
+		print 'Alpha  set to %s' % alpha
+
+
+		
+		
