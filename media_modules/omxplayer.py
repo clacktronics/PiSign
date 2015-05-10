@@ -1,7 +1,7 @@
 #!/usr/bin/env
 
 from time import sleep
-import subprocess,dbus,getpass,os
+import subprocess,dbus,getpass,os,signal,random
 from re import match, search
 
 class media():
@@ -9,7 +9,9 @@ class media():
 		self.media = media
 
 		try:
-			self.nick = match('[0-9A-Za-z]*', media).group(0)
+			#self.nick = match('[0-9A-Za-z]*', media).group(0)
+			self.nick = int(random.random() * 1000)
+
 		except:
 			print 'error filename must start with  numbers or letters'
 		
@@ -28,7 +30,8 @@ class media():
 
 		print self.cmd
 		devnull = open(os.devnull, 'wb')
-		self.player = subprocess.Popen(self.cmd, stdout = devnull)
+		self.player = subprocess.Popen(self.cmd,shell=False)
+		self.pid =  self.player.pid
 
 		done,retry = 0,0
 		while done == 0:
@@ -42,7 +45,7 @@ class media():
 				self.PlayerProp = dbus.Interface(self.object,'org.freedesktop.DBus.Properties') 
         			# PlaterInter is the interface to control the video ( e.g seek, pause etc etc )
 				self.PlayerInter = dbus.Interface(self.object,'org.mpris.MediaPlayer2.Player')
-				#self.PlayerInter.Action(dbus.Int32("16"))
+				self.pause()
 				done = 1
 			except Exception,e: # try 50 times until it connects
 				retry+=1
@@ -57,16 +60,22 @@ class media():
 	def pause(self):
 		self.PlayerInter.Pause()
 
-	def paused():
-		if self.PlayerProp.PlaybackStatus != "Paused":
+	def paused(self):
+		if self.PlayerProp.PlaybackStatus() != "Paused":
 			self.pause()
-	def unpaused():
-		if self.PlayerProp.PlaybackStatus == "Paused":
+	def unpaused(self):
+		if self.PlayerProp.PlaybackStatus() == "Paused":
 			self.pause()
 
 	def quit(self):
+		print self.PlayerProp.CanQuit()
 		self.object.Quit()
-
+		#self.player.kill()
+		#self.player.terminate()
+		try: os.kill(self.pid, 0)
+		except OSError: print 'OSerr'
+		else: print 'its fucking running'
+		os.kill(self.pid, signal.SIGKILL)
 	# Audio actions
 	
 	def volume(self,level):
@@ -84,6 +93,9 @@ class media():
 			print vol
 		if 'kill' in args:
 			self.quit()
+
+	def unmute(self):
+		self.PlayerProp.Unmute()
 	
 	# Video actions
 
