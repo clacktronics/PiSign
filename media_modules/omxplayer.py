@@ -10,7 +10,7 @@ class media():
 
 		try:
 			#self.nick = match('[0-9A-Za-z]*', media).group(0)
-			self.nick = int(random.random() * 1000)
+			self.nick = int(random.random() * 10000)
 
 		except:
 			print 'error filename must start with  numbers or letters'
@@ -72,10 +72,7 @@ class media():
 		self.object.Quit()
 		#self.player.kill()
 		#self.player.terminate()
-		try: os.kill(self.pid, 0)
-		except OSError: print 'OSerr'
-		else: print 'its fucking running'
-		os.kill(self.pid, signal.SIGKILL)
+		print  os.kill(self.pid, 0)
 	# Audio actions
 	
 	def volume(self,level):
